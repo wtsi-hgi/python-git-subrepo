@@ -1,3 +1,6 @@
 [run]
+branch = True
+source = .
 omit =
     gitsubrepo/tests/*
+parallel = True
