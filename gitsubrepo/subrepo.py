@@ -65,6 +65,7 @@ def clone(location: str, directory: str, *, branch: str=None, tag: str=None, com
         existing_parent_directory = os.path.dirname(existing_parent_directory)
 
     git_root = get_git_root_directory(existing_parent_directory)
+    git_relative_directory = os.path.relpath(os.path.realpath(directory), git_root)
 
     if (branch or tag) and commit:
         run([GIT_COMMAND, "fetch", location, branch if branch else tag], execution_directory=git_root)
@@ -73,9 +74,7 @@ def clone(location: str, directory: str, *, branch: str=None, tag: str=None, com
 
     try:
         run([GIT_COMMAND, _GIT_SUBREPO_COMMAND, _GIT_SUBREPO_CLONE_COMMAND, _GIT_SUBREPO_VERBOSE_FLAG,
-             _GIT_SUBREPO_BRANCH_FLAG, reference, location,
-             os.path.relpath(directory, existing_parent_directory)],
-             execution_directory=git_root)
+             _GIT_SUBREPO_BRANCH_FLAG, reference, location, git_relative_directory], execution_directory=git_root)
     except RunException as e:
         if re.search("Can't clone subrepo. (Unstaged|Index has) changes", e.stderr) is not None:
             raise UnstagedChangeException(git_root) from e
