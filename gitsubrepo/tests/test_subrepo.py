@@ -4,13 +4,12 @@ import tarfile
 import tempfile
 import unittest
 from pathlib import Path
-from time import sleep
 
 from git import Repo
 
 from gitsubrepo.exceptions import NotAGitRepositoryException, NotAGitReferenceException, UnstagedChangeException, \
     NotAGitSubrepoException
-from gitsubrepo.subrepo import clone, status
+from gitsubrepo.subrepo import clone, status, pull
 from gitsubrepo.tests._resources.information import TEST_TAG, TEST_TAG_COMMIT, TEST_TAG_FILE, TEST_BRANCH, \
     TEST_BRANCH_COMMIT, \
     TEST_BRANCH_FILE, TEST_COMMIT, TEST_COMMIT_BRANCH, TEST_COMMIT_FILE, TEST_COMMIT_2, TEST_COMMIT_2_BRANCH, \
@@ -119,6 +118,35 @@ class TestStatus(_TestWithSubrepo):
         self.assertEqual(url, self.external_git_repository)
         self.assertEqual(branch, TEST_BRANCH)
         self.assertEqual(commit, TEST_BRANCH_COMMIT)
+
+
+class TestPull(_TestWithSubrepo):
+    """
+    Tests for `pull`.
+    """
+    def test_pull_of_non_existent_directory(self):
+        self.assertRaises(ValueError, pull, os.path.join(self.git_directory, TEST_DIRECTORY_NAME))
+
+    def test_pull_when_uncommited_changes(self):
+        clone(self.external_git_repository, self.subrepo_directory, branch=TEST_BRANCH)
+        Path(os.path.join(self.git_directory, "example-file")).touch()
+        self.git_repository_client.git.add("--all")
+        self.assertRaises(UnstagedChangeException, pull, self.subrepo_directory)
+
+    def test_pull_when_up_to_date(self):
+        clone(self.external_git_repository, self.subrepo_directory, branch=TEST_BRANCH)
+        self.assertEqual(TEST_BRANCH_COMMIT, pull(self.subrepo_directory))
+
+    def test_pull_when_not_up_to_date(self):
+        clone(self.external_git_repository, self.subrepo_directory,
+              branch=self.git_repository_client.active_branch.name)
+
+        Path(os.path.join(self.external_git_repository, "example-file")).touch()
+        index = Repo(self.external_git_repository).index
+        index.add(["example-file"])
+        new_commit = index.commit("New commit").hexsha
+
+        self.assertEqual(new_commit[0:7], pull(self.subrepo_directory))
 
 
 if __name__ == "__main__":

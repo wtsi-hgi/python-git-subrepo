@@ -24,20 +24,6 @@ Commit = NewType("Commit", str)
 RepositoryUrl = NewType("RepositoryUrl", str)
 
 
-def _run(arguments: List[str], execution_directory: str=None) -> str:
-    """
-    TODO
-    :param arguments:
-    :return:
-    """
-    try:
-        return run(arguments, execution_directory)
-    except RuntimeError as e:
-        if "Not a git repository" in str(e):
-            raise NotAGitRepositoryException() from e
-        raise e
-
-
 def _get_directory_relative_to_git_root(directory: str):
     """
     TODO
@@ -56,7 +42,7 @@ def requires_subrepo(func: Callable) -> Callable:
     """
     def decorated(*args, **kwargs):
         try:
-            _run([GIT_COMMAND, _GIT_SUBREPO_COMMAND, "--version"])
+            run([GIT_COMMAND, _GIT_SUBREPO_COMMAND, "--version"])
         except RunException as e:
             raise RuntimeError("`git subrepo` does not appear to be working") from e
         return func(*args, **kwargs)
@@ -90,12 +76,12 @@ def clone(url: str, directory: str, *, branch: str=None, tag: str=None, commit: 
     git_root = get_git_root_directory(existing_parent_directory)
 
     if (branch or tag) and commit:
-        _run([GIT_COMMAND, "fetch", url, branch if branch else tag], execution_directory=git_root)
+        run([GIT_COMMAND, "fetch", url, branch if branch else tag], execution_directory=git_root)
         branch, tag = None, None
     reference = branch if branch else (tag if tag else commit)
 
     try:
-        _run([GIT_COMMAND, _GIT_SUBREPO_COMMAND, _GIT_SUBREPO_CLONE_COMMAND, _GIT_SUBREPO_VERBOSE_FLAG,
+        run([GIT_COMMAND, _GIT_SUBREPO_COMMAND, _GIT_SUBREPO_CLONE_COMMAND, _GIT_SUBREPO_VERBOSE_FLAG,
                _GIT_SUBREPO_BRANCH_FLAG, reference, url,
               os.path.relpath(directory, existing_parent_directory)],
              execution_directory=git_root)
@@ -104,7 +90,7 @@ def clone(url: str, directory: str, *, branch: str=None, tag: str=None, commit: 
             raise UnstagedChangeException(git_root) from e
         elif "Command failed:" in e.stderr:
             try:
-                repo_info = _run([GIT_COMMAND, _GIT_LS_REMOTE_COMMAND, url])
+                repo_info = run([GIT_COMMAND, _GIT_LS_REMOTE_COMMAND, url])
                 if not branch and not tag and commit:
                     raise NotAGitReferenceException(
                         f"Commit \"{commit}\" no found (specify branch/tag to fetch that first if required)")
@@ -133,12 +119,12 @@ def status(directory: str) -> Tuple[RepositoryUrl, Branch, Commit]:
         raise ValueError(f"No subrepo found in \"{directory}\"")
 
     try:
-        result = _run([GIT_COMMAND, _GIT_SUBREPO_COMMAND, _GIT_SUBREPO_STATUS_COMMAND, _GIT_SUBREPO_VERBOSE_FLAG,
+        result = run([GIT_COMMAND, _GIT_SUBREPO_COMMAND, _GIT_SUBREPO_STATUS_COMMAND, _GIT_SUBREPO_VERBOSE_FLAG,
                        _get_directory_relative_to_git_root(directory)],
                       execution_directory=get_git_root_directory(directory))
     except RunException as e:
         if "Command failed: 'git rev-parse --verify HEAD'" in e.stderr:
-            raise NotAGitSubrepoException(directory)
+            raise NotAGitSubrepoException(directory) from e
         raise e
 
     if re.search("is not a subrepo$", result):
@@ -159,9 +145,14 @@ def pull(directory: str) -> Commit:
     """
     if not os.path.exists(directory):
         raise ValueError(f"No subrepo found in \"{directory}\"")
-    _run([GIT_COMMAND, _GIT_SUBREPO_COMMAND, _GIT_SUBREPO_PULL_COMMAND, _GIT_SUBREPO_VERBOSE_FLAG,
-          _get_directory_relative_to_git_root(directory)],
-         execution_directory=get_git_root_directory(directory))
+    try:
+        result = run([GIT_COMMAND, _GIT_SUBREPO_COMMAND, _GIT_SUBREPO_PULL_COMMAND, _GIT_SUBREPO_VERBOSE_FLAG,
+                      _get_directory_relative_to_git_root(directory)],
+                     execution_directory=get_git_root_directory(directory))
+        # print(result)
+    except RunException as e:
+        if "Can't pull subrepo. Working tree has changes" in e.stderr:
+            raise UnstagedChangeException() from e
     return status(directory)[2]
 
 
