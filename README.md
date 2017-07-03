@@ -33,18 +33,18 @@ The library currently supports 3 `git subrepo` operations: `clone`, `pull` and `
 for specific information on how to use these methods.
 
 Example usage:
-```python3
-from gitsubrepo import clone, pull, status
+```python
+import gitsubrepo
 
 remote_repository = "https://github.com/colin-nolan/test-repository.git"
 repository_location = "/tmp/repo"
 subrepo_location = f"{repository_location}/subrepo"
 branch = "develop"
 
-commit_reference = clone(remote_repository, subrepo_location, branch=branch)
-updated_commit_reference = pull(subrepo_location)
+commit_reference = gitsubrepo.clone(remote_repository, subrepo_location, branch=branch)
+updated_commit_reference = gitsubrepo.pull(subrepo_location)
 
-subrepo_remote, subrepo_branch, subrepo_commit = status(subrepo_location)
+subrepo_remote, subrepo_branch, subrepo_commit = gitsubrepo.status(subrepo_location)
 assert subrepo_remote == remote_repository
 assert subrepo_branch == branch
 ```
