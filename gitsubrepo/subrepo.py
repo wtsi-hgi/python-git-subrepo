@@ -100,7 +100,7 @@ def clone(url: str, directory: str, *, branch: str=None, tag: str=None, commit: 
               os.path.relpath(directory, existing_parent_directory)],
              execution_directory=git_root)
     except RunException as e:
-        if "Can't clone subrepo. Unstaged changes" in e.stderr:
+        if re.search("Can't clone subrepo. (Unstaged|Index has) changes", e.stderr) is not None:
             raise UnstagedChangeException(git_root) from e
         elif "Command failed:" in e.stderr:
             try:
@@ -129,7 +129,7 @@ def status(directory: str) -> Tuple[RepositoryUrl, Branch, Commit]:
 
     result = _run([GIT_COMMAND, _GIT_SUBREPO_COMMAND, _GIT_SUBREPO_STATUS_COMMAND, _GIT_SUBREPO_VERBOSE_FLAG,
                    _get_directory_relative_to_git_root(directory)],
-                 execution_directory=get_git_root_directory(directory))
+                  execution_directory=get_git_root_directory(directory))
     url = re.search("Remote URL:\s*(.*)", result).group(1)
     branch = re.search("Tracking Branch:\s*(.*)", result).group(1)
     commit = re.search("Pulled Commit:\s*(.*)", result).group(1)
@@ -147,7 +147,7 @@ def pull(directory: str) -> Commit:
         raise ValueError(f"No subrepo found in \"{directory}\"")
     _run([GIT_COMMAND, _GIT_SUBREPO_COMMAND, _GIT_SUBREPO_PULL_COMMAND, _GIT_SUBREPO_VERBOSE_FLAG,
           _get_directory_relative_to_git_root(directory)],
-        execution_directory=get_git_root_directory(directory))
+         execution_directory=get_git_root_directory(directory))
     return status(directory)[2]
 
 
