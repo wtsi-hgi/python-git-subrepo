@@ -65,7 +65,9 @@ class TestClone(_TestWithSubrepo):
         self.assertEqual(TEST_COMMIT_2[0: 7], commit)
 
     def test_clone_to_into_non_existent_path(self):
-        commit = clone(self.external_git_repository, os.path.join(self.subrepo_directory, "deeper"))
+        deep = os.path.join(self.subrepo_directory, "deep")
+        os.makedirs(deep)
+        commit = clone(self.external_git_repository, os.path.join(deep, "deeper"))
         self.assertEqual(TEST_COMMIT_2[0: 7], commit)
 
     def test_clone_tag(self):
