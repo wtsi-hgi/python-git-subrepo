@@ -15,6 +15,6 @@ setup(
     install_requires=open("requirements.txt", "r").readlines(),
     url="https://github.com/wtsi-hgi/python-git-subrepo-wrapper",
     license="MIT",
-    description="",     # TODO
+    description="Provides access to `git subrepo` in Python",
     long_description=read_markdown("README.md")
 )

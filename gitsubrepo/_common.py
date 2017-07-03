@@ -9,9 +9,11 @@ _SUCCESS_RETURN_CODE = 0
 
 def run(arguments: List[str], execution_directory: str=None) -> str:
     """
-    TODO
-    :param arguments:
-    :return:
+    Runs the given arguments from the given directory (if given, else resorts to the (undefined) current directory).
+    :param arguments: the CLI arguments to run
+    :param execution_directory: the directory to execute the arguments in
+    :return: what is written to stdout following execution
+    :exception RunException: called if the execution has a non-zero return code
     """
     process = subprocess.Popen(
         arguments, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE, cwd=execution_directory)
