@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/wtsi-hgi/python-git-subrepo-wrapper.svg?branch=master)](https://travis-ci.org/wtsi-hgi/python-git-subrepo-wrapper)
 [![codecov](https://codecov.io/gh/wtsi-hgi/python-git-subrepo-wrapper/branch/master/graph/badge.svg)](https://codecov.io/gh/wtsi-hgi/python-git-subrepo-wrapper)
+[![PyPI version](https://badge.fury.io/py/gitsubrepo.svg)](https://badge.fury.io/py/gitsubrepo)
 
 # Git Subrepo Python Wrapper
 In the same way that [`GitPython`](https://pypi.python.org/pypi/GitPython/) wraps `git`, this library provides easy 
