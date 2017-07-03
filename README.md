@@ -6,6 +6,64 @@ In the same way that [`GitPython`](https://pypi.python.org/pypi/GitPython/) wrap
 access to [git subrepo](https://github.com/ingydotnet/git-subrepo) in Python.
 
 
+## How to use
+### Prerequisites
+ - git >= 2.10.0 (on path)
+ - git-subrepo >= 0.3.1
+ - python >= 3.6
+
+
+### Installation
+Stable releases can be installed via [PyPI](https://pypi.python.org/pypi/gitsubrepo):
+```bash
+$ pip install gitsubrepo
+```
+
+Bleeding edge versions can be installed directly from GitHub:
+```bash
+$ pip install git+https://github.com/wtsi-hgi/python-git-subrepo-wrapper.git@${commit_id_or_branch_or_tag}#egg=gitsubrepo
+```
+
+To declare this library as a dependency of your project, add it to your `requirement.txt` file.
+
+
+### API
+The library currently supports 3 `git subrepo` operations: `clone`, `pull` and `status`. Please see the documentation 
+for specific information on how to use these methods.
+
+Example usage:
+```python3
+from gitsubrepo import clone, pull, status
+
+remote_repository = "https://github.com/colin-nolan/test-repository.git"
+repository_location = "/tmp/repo"
+subrepo_location = f"{repository_location}/subrepo"
+branch = "develop"
+
+commit_reference = clone(remote_repository, subrepo_location, branch=branch)
+updated_commit_reference = pull(subrepo_location)
+
+subrepo_remote, subrepo_branch, subrepo_commit = status(subrepo_location)
+assert subrepo_remote == remote_repository
+assert subrepo_branch == branch
+```
+
+
+## Development
+### Setup
+Install both library dependencies and the dependencies needed for testing:
+```bash
+$ pip install -q -r requirements.txt
+$ pip install -q -r test_requirements.txt
+```
+
+### Testing
+To run the tests and generate a coverage report with unittest:
+```bash
+$ PYTHONPATH=. coverage run -m unittest discover -v -s gitsubrepo/tests
+```
+
+
 ## License
 [MIT license](LICENSE.txt).
 

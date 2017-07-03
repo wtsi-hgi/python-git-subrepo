@@ -19,7 +19,7 @@ _DEFAULT_BRANCH = "master"
 
 Branch = NewType("Branch", str)
 Commit = NewType("Commit", str)
-RepositoryUrl = NewType("RepositoryUrl", str)
+RepositoryLocation = NewType("RepositoryLocation", str)
 
 
 @requires_git
@@ -98,7 +98,7 @@ def clone(location: str, directory: str, *, branch: str=None, tag: str=None, com
 
 
 @requires_subrepo
-def status(directory: str) -> Tuple[RepositoryUrl, Branch, Commit]:
+def status(directory: str) -> Tuple[RepositoryLocation, Branch, Commit]:
     """
     Gets the status of the subrepo that has been cloned into the given directory.
     :param directory: the directory containing the subrepo
