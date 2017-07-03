@@ -4,6 +4,7 @@ import tarfile
 import tempfile
 import unittest
 from pathlib import Path
+from time import sleep
 
 from git import Repo
 
@@ -58,6 +59,14 @@ class TestClone(_TestWithSubrepo):
         test_directory = os.path.join(self.temp_directory, TEST_DIRECTORY_NAME)
         os.makedirs(test_directory)
         self.assertRaises(ValueError, clone, self.external_git_repository, test_directory, tag=TEST_TAG)
+
+    def test_clone(self):
+        commit = clone(self.external_git_repository, self.subrepo_directory)
+        self.assertEqual(TEST_COMMIT_2[0: 7], commit)
+
+    def test_clone_to_into_non_existent_path(self):
+        commit = clone(self.external_git_repository, os.path.join(self.subrepo_directory, "deeper"))
+        self.assertEqual(TEST_COMMIT_2[0: 7], commit)
 
     def test_clone_tag(self):
         commit = clone(self.external_git_repository, self.subrepo_directory, tag=TEST_TAG)
