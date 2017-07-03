@@ -51,6 +51,9 @@ class TestClone(_TestWithSubrepo):
         self.assertRaises(NotAGitRepositoryException, clone, self.git_directory,
                           os.path.join(self.temp_directory, TEST_DIRECTORY_NAME), tag=TEST_TAG)
 
+    def test_clone_to_relative_directory(self):
+        self.assertRaises(ValueError, clone, self.external_git_repository, TEST_DIRECTORY_NAME)
+
     def test_clone_to_existing_directory(self):
         test_directory = os.path.join(self.temp_directory, TEST_DIRECTORY_NAME)
         os.makedirs(test_directory)

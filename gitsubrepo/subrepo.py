@@ -52,6 +52,8 @@ def clone(location: str, directory: str, *, branch: str=None, tag: str=None, com
     """
     if os.path.exists(directory):
         raise ValueError(f"The directory \"{directory}\" already exists")
+    if not os.path.isabs(directory):
+        raise ValueError(f"Directory must be absolute: {directory}")
     if branch and tag:
         raise ValueError(f"Cannot specify both branch \"{branch}\" and tag \"{tag}\"")
     if not branch and not tag and not commit:
