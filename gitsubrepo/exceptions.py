@@ -23,6 +23,12 @@ class NotAGitReferenceException(GitsubrepoException):
     """
 
 
+class NotAGitSubrepoException(GitsubrepoException):
+    """
+    TODO
+    """
+
+
 class RunException(GitsubrepoException):
     """
     TODO

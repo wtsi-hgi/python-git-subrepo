@@ -6,7 +6,7 @@ import re
 from gitsubrepo._common import run
 from gitsubrepo._git import requires_git, GIT_COMMAND, get_git_root_directory
 from gitsubrepo.exceptions import UnstagedChangeException, NotAGitRepositoryException, RunException, \
-    NotAGitReferenceException
+    NotAGitReferenceException, NotAGitSubrepoException
 
 _GIT_SUBREPO_COMMAND = "subrepo"
 _GIT_SUBREPO_CLONE_COMMAND = "clone"
@@ -105,9 +105,14 @@ def clone(url: str, directory: str, *, branch: str=None, tag: str=None, commit: 
         elif "Command failed:" in e.stderr:
             try:
                 repo_info = _run([GIT_COMMAND, _GIT_LS_REMOTE_COMMAND, url])
-                references = re.findall("^.+\srefs\/.+\/(.+)", repo_info, flags=re.MULTILINE)
-                if reference not in references:
-                    raise NotAGitReferenceException(f"{reference} not found in {references}") from e
+                if not branch and not tag and commit:
+                    raise NotAGitReferenceException(
+                        f"Commit \"{commit}\" no found (specify branch/tag to fetch that first if required)")
+                else:
+                    references = re.findall("^.+\srefs\/.+\/(.+)", repo_info, flags=re.MULTILINE)
+                    if reference not in references:
+                        raise NotAGitReferenceException(f"{reference} not found in {references}") from e
+
             except RunException as debug_e:
                 if re.match("fatal: repository .* not found", debug_e.stderr):
                     raise NotAGitRepositoryException(url) from e
@@ -127,9 +132,18 @@ def status(directory: str) -> Tuple[RepositoryUrl, Branch, Commit]:
     if not os.path.exists(directory):
         raise ValueError(f"No subrepo found in \"{directory}\"")
 
-    result = _run([GIT_COMMAND, _GIT_SUBREPO_COMMAND, _GIT_SUBREPO_STATUS_COMMAND, _GIT_SUBREPO_VERBOSE_FLAG,
-                   _get_directory_relative_to_git_root(directory)],
-                  execution_directory=get_git_root_directory(directory))
+    try:
+        result = _run([GIT_COMMAND, _GIT_SUBREPO_COMMAND, _GIT_SUBREPO_STATUS_COMMAND, _GIT_SUBREPO_VERBOSE_FLAG,
+                       _get_directory_relative_to_git_root(directory)],
+                      execution_directory=get_git_root_directory(directory))
+    except RunException as e:
+        if "Command failed: 'git rev-parse --verify HEAD'" in e.stderr:
+            raise NotAGitSubrepoException(directory)
+        raise e
+
+    if re.search("is not a subrepo$", result):
+        raise NotAGitSubrepoException(directory)
+
     url = re.search("Remote URL:\s*(.*)", result).group(1)
     branch = re.search("Tracking Branch:\s*(.*)", result).group(1)
     commit = re.search("Pulled Commit:\s*(.*)", result).group(1)
