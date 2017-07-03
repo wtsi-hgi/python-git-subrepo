@@ -1,22 +1,41 @@
-from typing import Callable, Tuple, NewType
+from typing import Callable, Tuple, NewType, List
 
 import os
 import re
 
-from gitsubrepo._git import requires_git, _GIT_COMMAND, get_git_root_directory
 from gitsubrepo._common import run
-from gitsubrepo.exceptions import UnstagedChangeException
+from gitsubrepo._git import requires_git, GIT_COMMAND, get_git_root_directory
+from gitsubrepo.exceptions import UnstagedChangeException, NotAGitRepositoryException, RunException, \
+    NotAGitReferenceException
 
 _GIT_SUBREPO_COMMAND = "subrepo"
 _GIT_SUBREPO_CLONE_COMMAND = "clone"
 _GIT_SUBREPO_STATUS_COMMAND = "status"
 _GIT_SUBREPO_PULL_COMMAND = "pull"
 _GIT_SUBREPO_BRANCH_FLAG = "--branch"
+_GIT_SUBREPO_VERBOSE_FLAG = "-v"
+_GIT_LS_REMOTE_COMMAND = "ls-remote"
+
+_DEFAULT_BRANCH = "master"
 
 
 Branch = NewType("Branch", str)
 Commit = NewType("Commit", str)
 RepositoryUrl = NewType("RepositoryUrl", str)
+
+
+def _run(arguments: List[str], execution_directory: str=None) -> str:
+    """
+    TODO
+    :param arguments:
+    :return:
+    """
+    try:
+        return run(arguments, execution_directory)
+    except RuntimeError as e:
+        if "Not a git repository" in str(e):
+            raise NotAGitRepositoryException() from e
+        raise e
 
 
 def _get_directory_relative_to_git_root(directory: str):
@@ -37,8 +56,8 @@ def requires_subrepo(func: Callable) -> Callable:
     """
     def decorated(*args, **kwargs):
         try:
-            run([_GIT_COMMAND, _GIT_SUBREPO_COMMAND, "--version"])
-        except RuntimeError as e:
+            _run([GIT_COMMAND, _GIT_SUBREPO_COMMAND, "--version"])
+        except RunException as e:
             raise RuntimeError("`git subrepo` does not appear to be working") from e
         return func(*args, **kwargs)
 
@@ -46,31 +65,53 @@ def requires_subrepo(func: Callable) -> Callable:
 
 
 @requires_subrepo
-def clone(url: str, branch: str, directory: str) -> Commit:
+def clone(url: str, directory: str, *, branch: str=None, tag: str=None, commit: str=None) -> Commit:
     """
     TODO
     :param url:
-    :param branch:
     :param directory:
-    :return: the pulled commit
+    :param branch:
+    :param tag:
+    :param commit:
+    :return:
     """
     if os.path.exists(directory):
         raise ValueError(f"The directory \"{directory}\" already exists")
+    if branch and tag:
+        raise ValueError(f"Cannot specify both branch \"{branch}\" and tag \"{tag}\"")
+    if not branch and not tag and not commit:
+        branch = _DEFAULT_BRANCH
 
     existing_parent_directory = directory
     while not os.path.exists(existing_parent_directory):
+        assert existing_parent_directory != ""
         existing_parent_directory = os.path.dirname(existing_parent_directory)
 
     git_root = get_git_root_directory(existing_parent_directory)
 
+    if (branch or tag) and commit:
+        _run([GIT_COMMAND, "fetch", url, branch if branch else tag], execution_directory=git_root)
+        branch, tag = None, None
+    reference = branch if branch else (tag if tag else commit)
+
     try:
-        run([_GIT_COMMAND, _GIT_SUBREPO_COMMAND,
-             _GIT_SUBREPO_BRANCH_FLAG, branch, _GIT_SUBREPO_CLONE_COMMAND, url,
-             os.path.relpath(directory, existing_parent_directory)],
-            execution_directory=git_root)
-    except RuntimeError as e:
-        if "Can't clone subrepo. Unstaged changes" in str(e):
+        _run([GIT_COMMAND, _GIT_SUBREPO_COMMAND, _GIT_SUBREPO_CLONE_COMMAND, _GIT_SUBREPO_VERBOSE_FLAG,
+               _GIT_SUBREPO_BRANCH_FLAG, reference, url,
+              os.path.relpath(directory, existing_parent_directory)],
+             execution_directory=git_root)
+    except RunException as e:
+        if "Can't clone subrepo. Unstaged changes" in e.stderr:
             raise UnstagedChangeException(git_root) from e
+        elif "Command failed:" in e.stderr:
+            try:
+                repo_info = _run([GIT_COMMAND, _GIT_LS_REMOTE_COMMAND, url])
+                references = re.findall("^.+\srefs\/.+\/(.+)", repo_info, flags=re.MULTILINE)
+                if reference not in references:
+                    raise NotAGitReferenceException(f"{reference} not found in {references}") from e
+            except RunException as debug_e:
+                if re.match("fatal: repository .* not found", debug_e.stderr):
+                    raise NotAGitRepositoryException(url) from e
+        raise e
 
     assert os.path.exists(directory)
     return status(directory)[2]
@@ -86,8 +127,8 @@ def status(directory: str) -> Tuple[RepositoryUrl, Branch, Commit]:
     if not os.path.exists(directory):
         raise ValueError(f"No subrepo found in \"{directory}\"")
 
-    result = run([_GIT_COMMAND, _GIT_SUBREPO_COMMAND, _GIT_SUBREPO_STATUS_COMMAND,
-                  _get_directory_relative_to_git_root(directory)],
+    result = _run([GIT_COMMAND, _GIT_SUBREPO_COMMAND, _GIT_SUBREPO_STATUS_COMMAND, _GIT_SUBREPO_VERBOSE_FLAG,
+                   _get_directory_relative_to_git_root(directory)],
                  execution_directory=get_git_root_directory(directory))
     url = re.search("Remote URL:\s*(.*)", result).group(1)
     branch = re.search("Tracking Branch:\s*(.*)", result).group(1)
@@ -104,8 +145,8 @@ def pull(directory: str) -> Commit:
     """
     if not os.path.exists(directory):
         raise ValueError(f"No subrepo found in \"{directory}\"")
-    run([_GIT_COMMAND, _GIT_SUBREPO_COMMAND, _GIT_SUBREPO_PULL_COMMAND,
-         _get_directory_relative_to_git_root(directory)],
+    _run([GIT_COMMAND, _GIT_SUBREPO_COMMAND, _GIT_SUBREPO_PULL_COMMAND, _GIT_SUBREPO_VERBOSE_FLAG,
+          _get_directory_relative_to_git_root(directory)],
         execution_directory=get_git_root_directory(directory))
     return status(directory)[2]
 

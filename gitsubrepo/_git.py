@@ -1,9 +1,9 @@
 from typing import Callable
 
 from gitsubrepo._common import run
-from gitsubrepo.exceptions import NotAGitRepositoryException
+from gitsubrepo.exceptions import NotAGitRepositoryException, RunException
 
-_GIT_COMMAND = "git"
+GIT_COMMAND = "git"
 
 
 def requires_git(func: Callable) -> Callable:
@@ -14,8 +14,8 @@ def requires_git(func: Callable) -> Callable:
     """
     def decorated(*args, **kwargs):
         try:
-            run([_GIT_COMMAND, "--version"])
-        except RuntimeError as e:
+            run([GIT_COMMAND, "--version"])
+        except RunException as e:
             raise RuntimeError("`git` does not appear to be working") from e
         return func(*args, **kwargs)
 
@@ -30,8 +30,8 @@ def get_git_root_directory(directory: str):
     :return:
     """
     try:
-        return run([_GIT_COMMAND, "rev-parse", "--show-toplevel"], directory)
-    except RuntimeError as e:
-        if " Not a git repository" in str(e):
+        return run([GIT_COMMAND, "rev-parse", "--show-toplevel"], directory)
+    except RunException as e:
+        if " Not a git repository" in e.stderr:
             raise NotAGitRepositoryException(directory) from e
 
