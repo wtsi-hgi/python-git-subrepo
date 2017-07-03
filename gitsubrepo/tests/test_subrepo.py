@@ -8,7 +8,7 @@ from git import Repo
 
 from gitsubrepo.exceptions import NotAGitRepositoryException, NotAGitReferenceException
 from gitsubrepo.subrepo import clone
-from gitsubrepo.test._resources.information import TEST_TAG, TEST_TAG_COMMIT, TEST_TAG_FILE, TEST_BRANCH, \
+from gitsubrepo.tests._resources.information import TEST_TAG, TEST_TAG_COMMIT, TEST_TAG_FILE, TEST_BRANCH, \
     TEST_BRANCH_COMMIT, \
     TEST_BRANCH_FILE, TEST_COMMIT, TEST_COMMIT_BRANCH, TEST_COMMIT_FILE, TEST_COMMIT_2, TEST_COMMIT_2_BRANCH, \
     TEST_COMMIT_2_FILE, EXTERNAL_REPOSITORY_ARCHIVE, EXTERNAL_REPOSITORY_NAME
@@ -19,7 +19,7 @@ TEST_GIT_REPO_DIRECTORY_NAME = "git-directory"
 
 class TestClone(unittest.TestCase):
     """
-    TODO
+    Tests for `clone`.
     """
     def setUp(self):
         self._temp_directory = tempfile.mkdtemp()
