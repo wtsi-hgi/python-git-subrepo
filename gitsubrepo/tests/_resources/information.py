@@ -16,5 +16,5 @@ TEST_COMMIT_2 = "cd682d66c4f5b9bdd5a618ecf3b8af2bf6f57f1a"
 TEST_COMMIT_2_BRANCH = "master"
 TEST_COMMIT_2_FILE = "update.txt"
 
-EXTERNAL_REPOSITORY_ARCHIVE = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test-repository.tar.gz")
-EXTERNAL_REPOSITORY_NAME = "test-repository"
+TEST_REPOSITORY_ARCHIVE = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test-repository.tar.gz")
+TEST_REPOSITORY_NAME = "test-repository.git"

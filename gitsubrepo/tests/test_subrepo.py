@@ -14,7 +14,7 @@ from gitsubrepo.subrepo import clone, status, pull
 from gitsubrepo.tests._resources.information import TEST_TAG, TEST_TAG_COMMIT, TEST_TAG_FILE, TEST_BRANCH, \
     TEST_BRANCH_COMMIT, \
     TEST_BRANCH_FILE, TEST_COMMIT, TEST_COMMIT_BRANCH, TEST_COMMIT_FILE, TEST_COMMIT_2, TEST_COMMIT_2_BRANCH, \
-    TEST_COMMIT_2_FILE, EXTERNAL_REPOSITORY_ARCHIVE, EXTERNAL_REPOSITORY_NAME
+    TEST_COMMIT_2_FILE, TEST_REPOSITORY_ARCHIVE, TEST_REPOSITORY_NAME
 
 TEST_DIRECTORY_NAME = "test-directory"
 TEST_GIT_REPO_DIRECTORY_NAME = "git-directory"
@@ -27,9 +27,9 @@ class _TestWithSubrepo(unittest.TestCase):
     def setUp(self):
         self.temp_directory = tempfile.mkdtemp()
 
-        with tarfile.open(EXTERNAL_REPOSITORY_ARCHIVE) as archive:
+        with tarfile.open(TEST_REPOSITORY_ARCHIVE) as archive:
             archive.extractall(path=self.temp_directory)
-        self.external_git_repository = os.path.join(self.temp_directory, EXTERNAL_REPOSITORY_NAME)
+        self.external_git_repository = os.path.join(self.temp_directory, TEST_REPOSITORY_NAME)
 
         self.git_directory = os.path.join(self.temp_directory, TEST_GIT_REPO_DIRECTORY_NAME)
         self.git_repository_client = Repo.init(self.git_directory)
@@ -152,11 +152,13 @@ class TestPull(_TestWithSubrepo):
         self.assertEqual(TEST_BRANCH_COMMIT, pull(self.subrepo_directory))
 
     def test_pull_when_not_up_to_date(self):
-        clone(self.external_git_repository, self.subrepo_directory,
-              branch=self.git_repository_client.active_branch.name)
+        mutable_remote = os.path.join(self.temp_directory, "mutable-remote")
+        Repo(self.external_git_repository).clone(mutable_remote)
 
-        Path(os.path.join(self.external_git_repository, "example-file")).touch()
-        index = Repo(self.external_git_repository).index
+        clone(mutable_remote, self.subrepo_directory, branch=self.git_repository_client.active_branch.name)
+
+        Path(os.path.join(mutable_remote, "example-file")).touch()
+        index = Repo(mutable_remote).index
         index.add(["example-file"])
         new_commit = index.commit("New commit").hexsha
 
