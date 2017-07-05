@@ -1,3 +1,5 @@
+from typing import List, Optional
+
 
 class GitsubrepoException(Exception):
     """
@@ -33,14 +35,18 @@ class RunException(GitsubrepoException):
     """
     Raised when a run exited with a non-zero exit code.
     """
-    def __init__(self, stdout: str, stderr: str):
+    def __init__(self, stdout: str, stderr: str, command: List[str], execution_directory: Optional[str]):
         """
         Constructor.
         :param stdout: what the executable wrote to stdout
         :param stderr: what the executable wrote to stderr
+        :param command: the command that was ran
+        :param execution_directory: the directory where the command was ran (`None` indicates the current directory)
         """
         self.stdout = stdout
         self.stderr = stderr
+        self.command = command
+        self.execution_directory = execution_directory
 
     def __str__(self):
-        return f"stdout:\n{self.stdout}\n\nstderr:\n{self.stderr}"
+        return f"Command:\n{self.command} ({self.execution_directory})\nstdout:\n{self.stdout}\nstderr:\n{self.stderr}"

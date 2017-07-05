@@ -22,4 +22,4 @@ def run(arguments: List[str], execution_directory: str=None) -> str:
     if process.returncode == _SUCCESS_RETURN_CODE:
         return stdout
     else:
-        raise RunException(stdout, error.decode(_DATA_ENCODING).rstrip())
+        raise RunException(stdout, error.decode(_DATA_ENCODING).rstrip(), arguments, execution_directory)
