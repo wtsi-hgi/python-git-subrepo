@@ -61,8 +61,9 @@ $ pip install -q -r test_requirements.txt
 ### Testing
 To run the tests and generate a coverage report with unittest:
 ```bash
-$ PYTHONPATH=. coverage run -m unittest discover -v -s gitsubrepo/tests
+./test-runner.sh
 ```
+If you wish to run the tests inside a Docker container, build `Docker.test`.
 
 
 ## License

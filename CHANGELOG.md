@@ -1,5 +1,9 @@
 # Change Log
 
+## [Unreleased]
+### Changed
+- Moved to running tests inside Docker.
+
 ## 1.0.2 - 2017-07-03
 ### Changed
 - Checks for clone to relative directory.
