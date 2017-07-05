@@ -83,7 +83,7 @@ def clone(location: str, directory: str, *, branch: str=None, tag: str=None, com
                 repo_info = run([GIT_COMMAND, _GIT_LS_REMOTE_COMMAND, location])
                 if not branch and not tag and commit:
                     raise NotAGitReferenceException(
-                        f"Commit \"{commit}\" no found (specify branch/tag to fetch that first if required)")
+                        f"Commit \"{commit}\" not found (specify branch/tag to fetch that first if required)")
                 else:
                     references = re.findall("^.+\srefs\/.+\/(.+)", repo_info, flags=re.MULTILINE)
                     if reference not in references:
