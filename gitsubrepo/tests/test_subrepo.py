@@ -4,7 +4,6 @@ import tarfile
 import tempfile
 import unittest
 from pathlib import Path
-from time import sleep
 
 from git import Repo
 
