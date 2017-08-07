@@ -1,5 +1,5 @@
-[![Build Status](https://travis-ci.org/wtsi-hgi/python-git-subrepo-wrapper.svg?branch=master)](https://travis-ci.org/wtsi-hgi/python-git-subrepo-wrapper)
-[![codecov](https://codecov.io/gh/wtsi-hgi/python-git-subrepo-wrapper/branch/master/graph/badge.svg)](https://codecov.io/gh/wtsi-hgi/python-git-subrepo-wrapper)
+[![Build Status](https://travis-ci.org/wtsi-hgi/python-git-subrepo.svg?branch=master)](https://travis-ci.org/wtsi-hgi/python-git-subrepo-wrapper)
+[![codecov](https://codecov.io/gh/wtsi-hgi/python-git-subrepo/branch/master/graph/badge.svg)](https://codecov.io/gh/wtsi-hgi/python-git-subrepo)
 [![PyPI version](https://badge.fury.io/py/gitsubrepo.svg)](https://badge.fury.io/py/gitsubrepo)
 
 # Git Subrepo Python Wrapper
@@ -70,4 +70,3 @@ If you wish to run the tests inside a Docker container, build `Docker.test`.
 [MIT license](LICENSE.txt).
 
 Copyright (c) 2017 Genome Research Limited
-
