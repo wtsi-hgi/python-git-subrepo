@@ -17,6 +17,8 @@ from gitsubrepo.tests._resources.information import TEST_TAG, TEST_TAG_COMMIT, T
 
 TEST_DIRECTORY_NAME = "test-directory"
 TEST_GIT_REPO_DIRECTORY_NAME = "git-directory"
+TEST_NAME = "test-name"
+TEST_EMAIL = "test@test-email"
 
 
 class _TestWithSubrepo(unittest.TestCase):
@@ -106,6 +108,17 @@ class TestClone(_TestWithSubrepo):
         Path(os.path.join(self.git_directory, "example-file")).touch()
         self.git_repository_client.git.add("--all")
         self.assertRaises(UnstagedChangeException, clone, self.external_git_repository, self.subrepo_directory)
+
+    def test_clone_with_specific_author(self):
+        clone(self.external_git_repository, self.subrepo_directory, author_name=TEST_NAME, author_email=TEST_EMAIL)
+        latest_commit = self.git_repository_client.commit()
+        self.assertEqual(TEST_NAME, latest_commit.author.name)
+        self.assertEqual(TEST_EMAIL, latest_commit.author.email)
+
+        clone(self.external_git_repository, os.path.join(self.git_directory, "other"))
+        latest_commit = self.git_repository_client.commit()
+        self.assertNotEqual(TEST_NAME, latest_commit.author.name)
+        self.assertNotEqual(TEST_EMAIL, latest_commit.author.email)
 
 
 class TestStatus(_TestWithSubrepo):

@@ -17,6 +17,9 @@ _GIT_LS_REMOTE_COMMAND = "ls-remote"
 
 _DEFAULT_BRANCH = "master"
 
+_GIT_AUTHOR_NAME_ENVIRONMENT_VARIABLE = "GIT_AUTHOR_NAME"
+_GIT_AUTHOR_EMAIL_ENVIRONMENT_VARIABLE = "GIT_AUTHOR_EMAIL"
+
 Branch = NewType("Branch", str)
 Commit = NewType("Commit", str)
 RepositoryLocation = NewType("RepositoryLocation", str)
@@ -40,7 +43,8 @@ def requires_subrepo(func: Callable) -> Callable:
 
 
 @requires_subrepo
-def clone(location: str, directory: str, *, branch: str=None, tag: str=None, commit: str=None) -> Commit:
+def clone(location: str, directory: str, *, branch: str=None, tag: str=None, commit: str=None, author_name: str=None,
+          author_email: str=None) -> Commit:
     """
     Clones the repository at the given location as a subrepo in the given directory.
     :param location: the location of the repository to clone
@@ -48,6 +52,8 @@ def clone(location: str, directory: str, *, branch: str=None, tag: str=None, com
     :param branch: the specific branch to clone
     :param tag: the specific tag to clone
     :param commit: the specific commit to clone (may also require tag/branch to be specified if not fetched)
+    :param author_name: the name of the author to assign to the clone commit (uses system specified if not set)
+    :param author_email: the email of the author to assign to the clone commit (uses system specified if not set)
     :return: the commit reference of the checkout
     """
     if os.path.exists(directory):
@@ -72,9 +78,16 @@ def clone(location: str, directory: str, *, branch: str=None, tag: str=None, com
         branch, tag = None, None
     reference = branch if branch else (tag if tag else commit)
 
+    execution_environment = os.environ.copy()
+    if author_name is not None:
+        execution_environment[_GIT_AUTHOR_NAME_ENVIRONMENT_VARIABLE] = author_name
+    if author_email is not None:
+        execution_environment[_GIT_AUTHOR_EMAIL_ENVIRONMENT_VARIABLE] = author_email
+
     try:
         run([GIT_COMMAND, _GIT_SUBREPO_COMMAND, _GIT_SUBREPO_CLONE_COMMAND, _GIT_SUBREPO_VERBOSE_FLAG,
-             _GIT_SUBREPO_BRANCH_FLAG, reference, location, git_relative_directory], execution_directory=git_root)
+             _GIT_SUBREPO_BRANCH_FLAG, reference, location, git_relative_directory], execution_directory=git_root,
+            execution_environment=execution_environment)
     except RunException as e:
         if re.search("Can't clone subrepo. (Unstaged|Index has) changes", e.stderr) is not None:
             raise UnstagedChangeException(git_root) from e
