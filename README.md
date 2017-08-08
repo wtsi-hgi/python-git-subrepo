@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/wtsi-hgi/python-git-subrepo.svg?branch=master)](https://travis-ci.org/wtsi-hgi/python-git-subrepo-wrapper)
+[![Build Status](https://travis-ci.org/wtsi-hgi/python-git-subrepo.svg?branch=master)](https://travis-ci.org/wtsi-hgi/python-git-subrepo)
 [![codecov](https://codecov.io/gh/wtsi-hgi/python-git-subrepo/branch/master/graph/badge.svg)](https://codecov.io/gh/wtsi-hgi/python-git-subrepo)
 [![PyPI version](https://badge.fury.io/py/gitsubrepo.svg)](https://badge.fury.io/py/gitsubrepo)
 
@@ -22,7 +22,7 @@ $ pip install gitsubrepo
 
 Bleeding edge versions can be installed directly from GitHub:
 ```bash
-$ pip install git+https://github.com/wtsi-hgi/python-git-subrepo-wrapper.git@${commit_id_or_branch_or_tag}#egg=gitsubrepo
+$ pip install git+https://github.com/wtsi-hgi/python-git-subrepo.git@${commitIdBranchOrTag}#egg=gitsubrepo
 ```
 
 To declare this library as a dependency of your project, add it to your `requirement.txt` file.
